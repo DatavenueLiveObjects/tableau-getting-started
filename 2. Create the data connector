@@ -1,0 +1,141 @@
+# Build the Web data connector #
+
+The web data connector is made up of two parts : the html page (here indexLO.html) and a java script (here MongoCnt.js). 
+These files must be saved under the “webdataconnector\” path in order to be reachable by the embedded web server.
+
+## Create the HTML page ##
+Create the indexLO.html file and copy the following code 
+
+
+```ruby
+<html>
+<head>
+    <title>Live Objects OAB App test 1</title>
+    <meta http-equiv="Cache-Control" content="no-store" />
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"  crossorigin="anonymous"></script>
+    <script src="https://connectors.tableau.com/libs/tableauwdc-2.3.latest.js" type="text/javascript"></script>
+    <script src="MongoCnt.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+</head>
+<body>
+    <div class="container container-table">
+        <div class="row vertical-center-row">
+            <div class="text-center col-md-4 col-md-offset-4">
+              <label for="max_iterations">Max number of data to return :</label>
+              <input class="form-control" id="max_iterations" value="100">
+              <small class="text-muted"> Value is limited to 1000 </small><br>
+                <button type = "button" id = "submitButton" class = "btn btn-success" style = "margin: 10px;">Get Live Objects OAB App Data!</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+ 
+This code is based on a basic sample from the Tableau docs.
+* The tableauwdc-2-3.latest.js file is the main library for the WDC API.
+* moment.js will be helpful to convert Live Objects timestamps (ISO-8601) to the tableau expected format 
+* The MongoCnt.js will be our javascript code for our connector.
+* a field that get the number of data to be gathered (currently limited to 1000)
+* a simple button to get data. You can attach an event listener to the button.
+
+## Create the connector object ##
+
+Create a MongoCnt.js file at the same directory as the indexLO.html.
+The basic structure of the code is:
+
+
+```ruby
+(function () {
+    var myConnector = tableau.makeConnector();
+
+    myConnector.getSchema = function (schemaCallback) {
+
+    };
+
+    myConnector.getData = function(table, doneCallback) {
+ 
+    };
+
+    tableau.registerConnector(myConnector);
+
+ })();
+```
+ 
+A few comments about the code:
+
+The code is wrapped in an immediately invoked function expression to create a local scope.
+*	The tableau object isn’t defined in our code, but in the WDC library. (It’s assigned to the global scope.)
+*	The __makeConnector__ function is a constructor that predefines some methods for our connector object.
+*	The __getSchema__ and __getData__ functions are placeholders for now, but will contain the logic for getting the table schema of the data and downloading the data.
+*	The __registerConnector__ function validates the connector object before initialization.
+
+## Add an event listener ##
+
+Remember how we added a button to the HTML page? It’s time to create an event listener that responds to clicking on the button.
+Copy the following code and paste it directly below the __registerConnector__ function:
+ 
+
+```ruby
+     $(document).ready(function () {
+        $("#submitButton").click(function () {
+            tableau.connectionName = "Live Objects Feed";
+            tableau.submit();
+        });
+    });
+```
+ -----------------------------------------
+ 
+Define a schema
+Here you need to define how you want to map the data to one or more or tables before you can download data and send it to tableau. This mapping of data is done in the schema.
+You can take a look here to decide what kind of data you want to map in the schema.
+The Android simulator generates through Live Objects the following JSON :
+    {
+        "id": "5b19493dc74a4967ec9d0bc9",
+        "streamId": "android357329073120059",
+        "timestamp": "2018-06-07T15:03:25.651Z",
+        "location": {
+            "lat": 45.76739,
+            "lon": 4.83605
+        },
+        "model": "demo",
+        "value": {
+            "hygrometry": 68,
+            "revmin": 3082,
+            "temperature": 32
+        },
+        "metadata": {
+            "source": "urn:lo:nsid:android:357329073120059",
+            "connector": "mqtt"
+        },
+        "created": "2018-06-07T15:03:25.661Z"
+    },
+
+In this sample we will gather the following columns:
+-	timestamp
+-	streamId
+-	hygrometry
+-	temperature
+-	revmin
+-	latitude
+-	longitude
+
+Here is a sample that will map these data. You can copy it to your JavaScript file
+ 
+
+Get the data
+Once the schema is defined, you can start pushing data to Tableau.
+Copy the following code and replace the placeholder getData function:
+
+ 
+The structure of this code is well explained in the tableau docs. 
+On the headers part, you just have to put the API-KEY you have generated from your Live Objects account.
+In order to get the data from Live Objects we call the following request : "https://liveobjects.orange-business.com/api/v0/data/streams/android357329073120059?limit="+max_iterations
+where 
+-	 “android357329073120059” is the data stream id.
+-	max_iterations is the number of data gathered (currently a max of the 1000 last generated data)
