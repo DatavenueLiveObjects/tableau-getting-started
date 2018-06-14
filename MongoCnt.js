@@ -35,7 +35,7 @@
 
         var tableSchema = {
             id: "testAppOAB",
-            alias: "1er test app OAB",
+            alias: "1st test app OAB",
             columns: cols
         };
 
@@ -46,13 +46,13 @@
     myConnector.getData = function(table, doneCallback) {
         $.ajaxSetup({
             headers : {
-                'X-API-KEY' : 'a9693915fac54fba85a646def7b0c42a'
+                'X-API-KEY' : 'XXXX' // put you Live Objects API key with Application role
             }
         });
         var connectionData = JSON.parse(tableau.connectionData);
         var max_iterations = connectionData.max_iterations;
         // $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/PUT_YOUR_STREAMID_HERE?limit="+max_iterations, function(resp) {
-        $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/androidFLG357329073120059?limit="+max_iterations, function(resp) {
+        $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/androidFLG35732098787059?limit="+max_iterations, function(resp) {
             var feat = resp,
                 tableData = [];
 
@@ -87,7 +87,7 @@
            tableau.connectionData = JSON.stringify(connectionData);
            tableau.submit();
        }else {
-         alert('Saisissez une valeur entre 1 et 1000')
+         alert('Enter a value between 1 and 1000')
        }
     };
 
