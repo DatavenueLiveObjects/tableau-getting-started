@@ -12,5 +12,5 @@ In this tutorial we will show you how to:
 *	use the web data connector with Tableau Desktop
 
 If you want to have a quick preview of the result of this tutorial:
-*	install the *free trial version* of Tableau Desktop at https://www.tableau.com/products/trial
+*	install the **free trial version** of Tableau Desktop at https://www.tableau.com/products/trial
 *	download LoDash2.twbx in this Git and open if with Tableau
