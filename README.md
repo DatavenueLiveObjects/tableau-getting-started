@@ -2,9 +2,7 @@
 
 This tutorial will show you how to visualize and analyze your Live Objects IoT data with Tableau, one of the most powerful BI tools.
 
-![](img/tableauex1.png)
-
-![](img/tableauex2.png)
+![](img/home1.jpg)
 
 Creating a web data connector (WDC) is the best way to make a quick integration between Live Objects and Tableau.
 In this tutorial we will show you how to: 
