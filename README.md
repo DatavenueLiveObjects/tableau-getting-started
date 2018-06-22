@@ -13,4 +13,4 @@ In this tutorial we will show you how to:
 
 If you want to have a quick preview of the result of this tutorial:
 *	install the **free trial version** of Tableau Desktop at https://www.tableau.com/products/trial
-*	download LoDash2.twbx in this Git and open if with Tableau
+*	download [LoDash2.twbx](https://github.com/DatavenueLiveObjects/tableau-getting-started/blob/master/LoDash2.twbx) in this Git and open if with Tableau
