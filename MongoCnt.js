@@ -4,7 +4,7 @@
     myConnector.getSchema = function (schemaCallback) {
         var cols = [{
             id: "timestamp",
-            alias:"timestamp",
+            alias: "timestamp",
             dataType: tableau.dataTypeEnum.datetime
 
         }, {
@@ -27,7 +27,7 @@
             id: "lat",
             alias: "lat",
             dataType: tableau.dataTypeEnum.float
-        },{
+        }, {
             id: "lon",
             alias: "lon",
             dataType: tableau.dataTypeEnum.float
@@ -35,7 +35,7 @@
 
         var tableSchema = {
             id: "testAppOAB",
-            alias: "1st test app OAB",
+            alias: "1er test app OAB",
             columns: cols
         };
 
@@ -43,25 +43,43 @@
         schemaCallback([tableSchema]);
     };
 
-    myConnector.getData = function(table, doneCallback) {
+    myConnector.getNextData = function (table, doneCallback, firstElementIndex, loadedCount, nextElementId) {
         $.ajaxSetup({
-            headers : {
-                'X-API-KEY' : 'XXXX' // put you Live Objects API key with Application role
+            headers: {
+                'X-API-KEY': 'XXXX' // put you Live Objects API key with Application role
             }
         });
         var connectionData = JSON.parse(tableau.connectionData);
         var max_iterations = connectionData.max_iterations;
-        // $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/PUT_YOUR_STREAMID_HERE?limit="+max_iterations, function(resp) {
-        $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/androidFLG35732098787059?limit="+max_iterations, function(resp) {
+        var stream_id = connectionData.stream_id;
+        var limit = Math.min(max_iterations, 1000);
+
+        // For less than 1000 raws : $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/PUT_YOUR_STREAMID_HERE?limit="+max_iterations, function(resp) {
+        // For more than 1000 raws use the Id of the last raw from the last request : $.getJSON("https://liveobjects.orange-business.com/api/v0/data/streams/PUT_YOUR_STREAMID_HERE?limit="+max_iterations+ "&bookmarkId=" + nextElementId, function(resp) {
+
+        // Build the request
+        var get = "https://liveobjects.orange-business.com/api/v0/data/streams/"+stream_id+"?limit="
+            + limit;
+
+        if (0 < firstElementIndex) {
+            console.log('Will look for more ' + limit + ' messages');
+            get += "&bookmarkId=" + nextElementId;
+        } else {
+            console.log('Will look for ' + limit + ' messages');
+        }
+
+        $.getJSON(get, function (resp) {
             var feat = resp,
-                tableData = [];
+                tableData = [],
+                lastId = "";
 
             tableau.log(".getJSON");
             tableau.log(resp);
             // Iterate over the JSON object
             for (var i = 0, len = feat.length; i < len; i++) {
-              var tim = moment(feat[i].timestamp).format('Y-MM-DD HH:mm:ss');
-              tableData.push({
+                var tim = moment(feat[i].timestamp).format('Y-MM-DD HH:mm:ss');
+                lastId = feat[i].id;
+                tableData.push({
                     "timestamp": tim,
                     "streamId": feat[i].streamId,
                     "hygrometry": feat[i].value.hygrometry,
@@ -73,22 +91,38 @@
             }
 
             table.appendRows(tableData);
-            doneCallback();
+            loadedCount += feat.length;
+            firstElementIndex += limit;
+
+            console.log('found ' + loadedCount + ' messages.')
+
+            if (max_iterations > 1000 && loadedCount < max_iterations && firstElementIndex === loadedCount) {
+                myConnector.getNextData(table, doneCallback, firstElementIndex, loadedCount, lastId);
+            } else {
+                doneCallback();
+            }
+
         });
+    }
+
+    myConnector.getData = function (table, doneCallback) {
+        myConnector.getNextData(table, doneCallback, 0, 0, null);
     };
 
-    setupConnector = function() {
-       var max_iterations = $("#max_iterations").val();
+    setupConnector = function () {
+        var max_iterations = $("#max_iterations").val();
+        var stream_id = $("#stream_id").val();
 
-       if (max_iterations >0 && max_iterations <= 1000) {
-           var connectionData = {
-               "max_iterations": parseInt(max_iterations)
-           };
-           tableau.connectionData = JSON.stringify(connectionData);
-           tableau.submit();
-       }else {
-         alert('Enter a value between 1 and 1000')
-       }
+        if (max_iterations > 0) {
+            var connectionData = {
+                "max_iterations": parseInt(max_iterations),
+                "stream_id": stream_id
+            };
+            tableau.connectionData = JSON.stringify(connectionData);
+            tableau.submit();
+        } else {
+            alert('Saisissez une valeur supérieur à 1')
+        }
     };
 
     tableau.registerConnector(myConnector);
@@ -99,7 +133,7 @@
             setupConnector();
         });
     });
-    $('#inputForm').submit(function(event) {
+    $('#inputForm').submit(function (event) {
         event.preventDefault();
         setupConnector();
 
