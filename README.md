@@ -1,3 +1,5 @@
+Copyright Orange - 2019 - Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) - https://creativecommons.org/licenses/by-sa/3.0/
+
 # Connecting Tableau and Live Objects
 
 This tutorial will show you how to visualize and analyze your Live Objects IoT data with Tableau, one of the most powerful BI tools.
